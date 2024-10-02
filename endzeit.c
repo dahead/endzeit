@@ -4,6 +4,55 @@
 #include <time.h>
 #include <unistd.h>
 
+int is_valid_date(int year, int month, int day) {
+    // Check if the month is valid
+    if (month < 1 || month > 12) {
+        return 0; // Invalid month
+    }
+
+    // Check if the day is valid for the given month
+    int days_in_month;
+    switch (month) {
+        case 1: case 3: case 5: case 7: case 8: case 10: case 12:
+            days_in_month = 31;
+            break;
+        case 4: case 6: case 9: case 11:
+            days_in_month = 30;
+            break;
+        case 2:
+            // Check for leap year
+            if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) {
+                days_in_month = 29; // Leap year
+            } else {
+                days_in_month = 28; // Non-leap year
+            }
+            break;
+        default:
+            return 0; // Should not reach here
+    }
+
+    // Check if the day is valid
+    if (day < 1 || day > days_in_month) {
+        return 0; // Invalid day
+    }
+
+    return 1; // Valid date
+}
+
+int is_valid_time(int hour, int minute, int second) {
+    // Validate hour, minute, and second
+    if (hour < 0 || hour > 23) {
+        return 0; // Invalid hour
+    }
+    if (minute < 0 || minute > 59) {
+        return 0; // Invalid minute
+    }
+    if (second < 0 || second > 59) {
+        return 0; // Invalid second
+    }
+    return 1; // Valid time
+}
+
 void countdown(int year, int month, int day, int hour, int minute, int second) {
     struct tm tm_time = {0};
     time_t target, now;
@@ -22,7 +71,7 @@ void countdown(int year, int month, int day, int hour, int minute, int second) {
         double seconds_left = difftime(target, now);
 
         if (seconds_left <= 0) {
-            printf("\rThe time is up!\n");
+            printf("\rThe time is up!          \n");
             break;
         }
 
@@ -34,7 +83,7 @@ void countdown(int year, int month, int day, int hour, int minute, int second) {
         int total_hours = (int)(seconds_left / 3600); // Total hours until end time
         int total_seconds = (int)seconds_left; // Total seconds until end time
 
-        printf("\rendzeit in: %d days %02d:%02d:%02d (%d hours : %d seconds) | Total seconds: %d", 
+        printf("\rRemaining time: %d days %02d:%02d:%02d (%d hours : %d seconds) | Total seconds: %d", 
                total_days, hours, minutes, seconds, total_hours, seconds, total_seconds);
         fflush(stdout);  
         
@@ -54,6 +103,13 @@ int main(int argc, char *argv[]) {
                     fprintf(stderr, "Invalid date format. Please use yyyy-mm-dd.\n");
                     return EXIT_FAILURE;
                 }
+
+                // Validate the date
+                if (!is_valid_date(year, month, day)) {
+                    fprintf(stderr, "Invalid date. Please ensure the month is 1-12 and the day is valid for the month.\n");
+                    return EXIT_FAILURE;
+                }
+
                 date_set = 1;
                 i++;  // Skip the next argument
             } else {
@@ -66,6 +122,13 @@ int main(int argc, char *argv[]) {
                     fprintf(stderr, "Invalid time format. Please use hh:mm:ss.\n");
                     return EXIT_FAILURE;
                 }
+
+                // Validate the time
+                if (!is_valid_time(hour, minute, second)) {
+                    fprintf(stderr, "Invalid time. Please ensure hour is 0-23 and minute/second are 0-59.\n");
+                    return EXIT_FAILURE;
+                }
+
                 i++;  // Skip the next argument
             } else {
                 fprintf(stderr, "Missing argument for -time.\n");
