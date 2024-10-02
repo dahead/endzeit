@@ -83,7 +83,7 @@ void countdown(int year, int month, int day, int hour, int minute, int second) {
         int total_hours = (int)(seconds_left / 3600); // Total hours until end time
         int total_seconds = (int)seconds_left; // Total seconds until end time
 
-        printf("\rRemaining time: %d days %02d:%02d:%02d (%d hours : %d seconds) | Total seconds: %d", 
+        printf("\rendzeit in %d days %02d:%02d:%02d (%d hours : %d seconds) | Total seconds: %d", 
                total_days, hours, minutes, seconds, total_hours, seconds, total_seconds);
         fflush(stdout);  
         
