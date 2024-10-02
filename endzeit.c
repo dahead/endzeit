@@ -53,6 +53,14 @@ int is_valid_time(int hour, int minute, int second) {
     return 1; // Valid time
 }
 
+void execute_command_if_set() {
+    char *command = getenv("ENDZEIT_EXEC_WHEN_DONE");
+    if (command) {
+        printf("\nExecuting command: %s\n", command);
+        system(command); // Execute the command
+    }
+}
+
 void countdown(int year, int month, int day, int hour, int minute, int second) {
     struct tm tm_time = {0};
     time_t target, now;
@@ -60,9 +68,17 @@ void countdown(int year, int month, int day, int hour, int minute, int second) {
     tm_time.tm_year = year - 1900;
     tm_time.tm_mon = month - 1;
     tm_time.tm_mday = day;
-    tm_time.tm_hour = hour;
-    tm_time.tm_min = minute;
-    tm_time.tm_sec = second;
+    tm_time.tm_hour = hour;   // Set the hour
+    tm_time.tm_min = minute;   // Set the minute
+    tm_time.tm_sec = second;   // Set the second
+    tm_time.tm_isdst = -1;     // Automatically determine whether to use DST
+
+    // Calculate target time
+    now = time(NULL);
+    if (mktime(&tm_time) <= now) {
+        // If the specified time is already in the past, set it to the next day
+        tm_time.tm_mday += 1; // Move to the next day
+    }
 
     target = mktime(&tm_time);
 
@@ -71,7 +87,8 @@ void countdown(int year, int month, int day, int hour, int minute, int second) {
         double seconds_left = difftime(target, now);
 
         if (seconds_left <= 0) {
-            printf("\rThe time is up!          \n");
+            printf("\rendzeit!\n");
+            execute_command_if_set(); // Execute command if set
             break;
         }
 
@@ -80,13 +97,12 @@ void countdown(int year, int month, int day, int hour, int minute, int second) {
         int minutes = (int)(seconds_left / 60) % 60; // Remaining minutes
         int seconds = (int)seconds_left % 60; // Remaining seconds
 
-        int total_hours = (int)(seconds_left / 3600); // Total hours until end time
-        int total_seconds = (int)seconds_left; // Total seconds until end time
+        //int total_hours = (int)(seconds_left / 3600); // Total hours until end time
+        //int total_seconds = (int)seconds_left; // Total seconds until end time
 
-        printf("\rendzeit in %d days %02d:%02d:%02d (%d hours : %d seconds) | Total seconds: %d", 
-               total_days, hours, minutes, seconds, total_hours, seconds, total_seconds);
+        printf("\rendzeit in %d days %02d:%02d:%02d", total_days, hours, minutes, seconds);
+
         fflush(stdout);  
-        
         sleep(1);
     }
 }
